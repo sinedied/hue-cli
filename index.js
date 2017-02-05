@@ -41,11 +41,7 @@ class HueCli {
   }
 
   switchLights(on = false) {
-    return this.api
-      .lights()
-      .then(result => result.lights.map(l => l.id))
-      .then(lights => lights.map(l => this.api.setLightState(l, { 'on': on })))
-      .then(promises => Promise.all(promises));
+    return this.api.setGroupLightState(0, { 'on': on });
   }
 
   listScenes(name, max, print = false) {
