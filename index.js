@@ -48,29 +48,29 @@ class HueCli {
       .then(promises => Promise.all(promises));
   }
 
-  listScenes(name, max) {
+  listScenes(name, max, print = false) {
     name = diacritics.remove(name).toLowerCase();
     return this.api
       .scenes()
       .then(scenes => {
-        scenes
+        scenes = scenes
           .filter(s => diacritics.remove(s.name).toLowerCase().indexOf(name) >= 0)
-          .sort((a, b) => new Date(b.lastupdated).getTime() - new Date(a.lastupdated).getTime())
-          .slice(0, max)
-          .forEach(s => console.log(s.name.toLowerCase()));
-        return scenes;
+          .sort((a, b) => {
+            let diff = name ? (a.name.length - name.length) - (b.name.length - name.length) : 0;
+            return diff ? diff : new Date(b.lastupdated).getTime() - new Date(a.lastupdated).getTime();
+          })
+          .slice(0, max);
+        return print ?
+          scenes.forEach(s => console.log(s.name.toLowerCase())) :
+          scenes;
       });
   }
 
   activateScene(name = '') {
-    name = diacritics.remove(name).toLowerCase();
-    return this.api
-      .scenes()
+    return this.listScenes(name, 1)
       .then(scenes => {
-        scenes.sort((a, b) => new Date(a.lastupdated).getTime() - new Date(b.lastupdated).getTime());
-        let scene = scenes.find(s => diacritics.remove(s.name).toLowerCase().indexOf(name) === 0);
-        if (scene) {
-          return this.api.activateScene(scene.id);
+        if (scenes.length) {
+          return this.api.activateScene(scenes[0].id);
         }
         this._exit(`No scene found with the name "${name}"`);
       });
@@ -80,7 +80,7 @@ class HueCli {
     return hue
       .nupnpSearch()
       .then(bridges => {
-        bridges.forEach(b => console.log(b.ipaddress))
+        bridges.forEach(b => console.log(b.ipaddress));
         return bridges;
       }, () => this._exit('No bridge found'));
   }
@@ -153,7 +153,7 @@ class HueCli {
       case 's':
       case 'scene':
         let name = _.slice(1).join(' ');
-        return this._args.l ? this.listScenes(name, this._args.m) : this.activateScene(name);
+        return this._args.l ? this.listScenes(name, this._args.m, true) : this.activateScene(name);
       case 'setup':
         return this._args.list ? this.listBridges() : this.setupBridge(this._args.ip, this._args.force);
       case 'o':
