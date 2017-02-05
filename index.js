@@ -23,6 +23,7 @@ Commands:
   s, scene <name>  Activate scene starting with <name>
     -l, --list     List scenes, using <name> as optional filter
     -m, --max <n>  Show at most <n> scenes when listing (10 by default)
+    -c, --create   Create scene <name> using current lights state
     
   i, on            Switch all lights on  
   o, off           Switch all lights off
@@ -70,6 +71,16 @@ class HueCli {
         }
         this._exit(`No scene found with the name "${name}"`);
       });
+  }
+
+  createScene(name) {
+    if (!name) {
+      this._exit('No scene name specified')
+    }
+    return this.api
+      .getGroup(0)
+      .then(group => this.api.createBasicScene(group.lights, name))
+      .then(() => this._exit('Created scene successfully'), e => this._exit(`Cannot create scene: ${e}`));
   }
 
   listBridges() {
@@ -149,7 +160,9 @@ class HueCli {
       case 's':
       case 'scene':
         let name = _.slice(1).join(' ');
-        return this._args.l ? this.listScenes(name, this._args.m, true) : this.activateScene(name);
+        return this._args.list ?
+          this.listScenes(name, this._args.max, true) :
+          this._args.create ? this.createScene(name) : this.activateScene(name);
       case 'setup':
         return this._args.list ? this.listBridges() : this.setupBridge(this._args.ip, this._args.force);
       case 'o':
@@ -166,11 +179,12 @@ class HueCli {
 }
 
 new HueCli(require('minimist')(process.argv.slice(2), {
-  boolean: ['list', 'force'],
+  boolean: ['list', 'force', 'create'],
   string: ['ip'],
   number: ['max'],
   alias: {
     l: 'list',
+    c: 'create',
     i: 'ip',
     m: 'max'
   },
