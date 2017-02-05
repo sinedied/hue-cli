@@ -14,7 +14,7 @@ npm install -g @sinedied/hue-cli
 
 ### Usage
 
-```bash
+```
 Usage: hue [setup|scene|on|off]
 
 Commands:
