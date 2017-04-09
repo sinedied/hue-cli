@@ -26,6 +26,7 @@ Commands:
   s, scene <name>  Activate scene starting with <name>
     -l, --list     List scenes, using <name> as optional filter
     -m, --max <n>  Show at most <n> scenes when listing (10 by default)
+    -c, --create   Create scene <name> using current lights state
     
   i, on            Switch all lights on  
   o, off           Switch all lights off
